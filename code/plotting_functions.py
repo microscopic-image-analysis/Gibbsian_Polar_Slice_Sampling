@@ -9,6 +9,7 @@ Available functions:
     contour_precalc
     plot_contour_and_samples
     trace_plot
+    trace_plot_row
     trace_plot_radii
     trace_plot_log_den_vals
     plot_acf
@@ -16,9 +17,11 @@ Available functions:
     plot_accuracies
     dim_dep_plot
     plot_step_hist
+    plot_step_hist_row
     plot_data_and_dec_bnds
     plot_trace_and_acf
     plot_trace_and_step_hists
+    plot_traces_2_col
 """
 
 import numpy as np
@@ -259,6 +262,40 @@ def trace_plot(
     plt.plot(range(nvals), vals, linewidth=linewidth)
     wrapup(filepath)
 
+def trace_plot_row(
+        vals,
+        snames,
+        spsize=(4,2),
+        dpi=200,
+        title=None,
+        filepath=None,
+        linewidth=None
+    ):
+    """Creates a row of trace plots of given values
+
+        Args:
+            vals: values to be plotted, should be 1d np array
+            snames: names of the samplers used to be printed in legend
+            spsize: 2-tuple giving the size of each subplot
+            dpi: dots per inch used for plotting
+            title: the figure title, by default there is none
+            filepath: location to save plot to, leave default to not save it
+            linewidth: linewidth to be used by plt.plot(), by default the width
+                used is 1e3/len(vals)
+    """
+
+    nsam = len(snames)
+    figsize = (nsam * spsize[0], spsize[1])
+    fig = plt.figure(figsize=figsize, dpi=dpi, constrained_layout=True)
+    axes = fig.subplots(nrows=1, ncols=nsam)
+    if title != None:
+        plt.title(title)
+    linewidth = size_gen(linewidth, vals[0].shape[0])
+    for i in range(nsam):
+        axes[i].set_title(snames[i])
+        axes[i].plot(vals[i], linewidth=linewidth)
+    wrapup_overview(filepath)
+
 def trace_plot_radii(
         radii,
         figsize=(5,2.5),
@@ -412,7 +449,8 @@ def dim_dep_plot(
         title=None,
         filepath=None,
         xscale="linear",
-        yscale="linear"
+        yscale="linear",
+        ylim=None
     ):
     """Plots dimension dependent quantities for a set of samplers and dimensions
     
@@ -428,18 +466,23 @@ def dim_dep_plot(
             filepath: location to save plot to, leave default to not save it
             xscale: type of scale to be used for x-axis, e.g. "linear" or "log"
             yscale: type of scale to be used for y-axis, e.g. "linear" or "log"
+            ylim: values to be used for plt.ylim, leave None to let matplotlib
+                decide this
     """
 
     default_cycler = plt.rcParams["axes.prop_cycle"]
     colors = plt.cm.viridis(np.linspace(0, 0.9, len(snames)))
     plt.rcParams["axes.prop_cycle"] = plt.cycler("color", colors)
     initiate(figsize, dpi, title)
-    if len(ds) <= 10 and xscale == "linear":
-        plt.xticks(ds)
+    # don't rearrange, plt.xticks this must come after plt.xscale!
     plt.xscale(xscale)
     plt.yscale(yscale)
+    if len(ds) <= 10 and xscale == "linear":
+        plt.xticks(ds)
     plt.xlabel("d")
     plt.ylabel(qname)
+    if ylim != None:
+        plt.ylim(ylim)
     for i, sam_qs in enumerate(qs):
         plt.plot(ds, sam_qs, linestyle="dashed", marker=markers[i % nmarkers])
     plt.legend(snames, loc="upper left")
@@ -473,6 +516,41 @@ def plot_step_hist(
     initiate(figsize, dpi, title)
     plt.hist(steps, bins=nbins)
     wrapup(filepath)
+
+def plot_step_hist_row(
+        steps,
+        snames,
+        spsize=(4,2),
+        dpi=200,
+        title=None,
+        filepath=None,
+        nbins=None
+    ):
+    """Creates a row of step histogram plots corresponding to given step sizes
+
+        Args:
+            steps: list of arrays of step sizes for each sampler
+            snames: names of the samplers used to be printed in legend
+            spsize: 2-tuple giving the size of each subplot
+            dpi: dots per inch used for plotting
+            title: the figure title, by default there is none
+            filepath: location to save plot to, leave default to not save it
+            nbins: number of bins to be used, by default the number will be set
+                so that the average bin contains 100 elements
+    """
+
+    nsam = len(snames)
+    figsize = (nsam * spsize[0], spsize[1])
+    fig = plt.figure(figsize=figsize, dpi=dpi, constrained_layout=True)
+    axes = fig.subplots(nrows=1, ncols=nsam)
+    if title != None:
+        plt.title(title)
+    maxsteps = np.quantile(steps, 0.999)
+    nbins = bin_gen(nbins, steps[0].shape[0])
+    for i in range(nsam):
+        axes[i].set_title(snames[i])
+        axes[i].hist(steps[i], bins=nbins, range=(0,maxsteps))
+    wrapup_overview(filepath)
 
 def plot_data_and_dec_bnds(
         a,
