@@ -2,3 +2,6 @@ numpy>=1.23.5
 scipy>=1.10.1
 matplotlib>=3.7.1
 fastprogress>=1.0.3
+pandas>=2.0.1
+scikit-learn>=1.2.2
+pymc==4.0
