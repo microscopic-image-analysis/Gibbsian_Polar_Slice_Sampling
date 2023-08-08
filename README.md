@@ -4,6 +4,6 @@ This repository contains the experiments and plots presented in the paper
 
 Philip Schär, Michael Habeck, Daniel Rudolf  
 Gibbsian Polar Slice Sampling  
-arXiv preprint arXiv:2302.03945, 2023.  
-Acc. for publ. at ICML 2023.
+Proceedings of the 40th International Conference on Machine Learning,  
+PMLR 202:30204-30223, 2023
 
