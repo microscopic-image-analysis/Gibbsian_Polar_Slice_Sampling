@@ -111,6 +111,7 @@ def orbit_shrinkage(log_trafo, r_old, p, log_t, y):
     omega_min = omega - 2*np.pi
     omega_max = omega
     theta = p * np.cos(omega) + y * np.sin(omega)
+    theta = theta / alg.norm(theta) # prevents accumulating errors
     while log_trafo(r_old, theta) <= log_t:
         omega = rnd.uniform(omega_min, omega_max)
         theta = p * np.cos(omega) + y * np.sin(omega)
